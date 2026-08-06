@@ -449,6 +449,7 @@ in
       ];
 
       boot.loader.grub.enable = lib.mkDefault false;
+      boot.loader.systemd-boot.enable = lib.mkDefault false;
 
       boot.loader.supportsInitrdSecrets = true;
 

@@ -165,7 +165,8 @@ in
 
   options.boot.loader.systemd-boot = {
     enable = mkOption {
-      default = false;
+      default = !config.boot.isContainer;
+      defaultText = literalExpression "!config.boot.isContainer";
 
       type = types.bool;
 

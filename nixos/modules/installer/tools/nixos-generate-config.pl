@@ -688,7 +688,7 @@ EOF
 EOF
         } elsif (-e "/boot/extlinux") {
             $bootLoaderConfig = <<EOF;
-  # Use the extlinux boot loader. (NixOS wants to enable GRUB by default)
+  # Use the extlinux boot loader. (NixOS defaults to systemd-boot; disable it here)
   boot.loader.grub.enable = false;
   # Enables the generation of /boot/extlinux/extlinux.conf
   boot.loader.generic-extlinux-compatible.enable = true;
