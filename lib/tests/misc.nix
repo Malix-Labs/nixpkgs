@@ -5221,4 +5221,18 @@ runTests {
       ))
     ];
   };
+
+  testMkBoolOption = {
+    expr = lib.mkBoolOption {
+      name = "foo";
+      default = true;
+      extraDescription = "Extra details.";
+    };
+    expected = lib.mkOption {
+      default = true;
+      example = false;
+      type = lib.types.bool;
+      description = "Whether to enable foo.\nExtra details.";
+    };
+  };
 }

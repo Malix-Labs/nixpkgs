@@ -36,6 +36,7 @@ let
   inherit (lib.strings)
     concatMapStrings
     concatStringsSep
+    optionalString
     ;
   inherit (lib.types)
     mkOptionType
@@ -153,7 +154,63 @@ rec {
     attrs // { _type = "option"; };
 
   /**
+    Creates a boolean option declaration with a configurable default value and description.
+
+    # Inputs
+
+    Structured function argument
+    : Attribute set containing the following attributes:
+
+      `name`
+      : Name of the option.
+
+      `default`
+      : Default value of the option. Default: `false`
+
+      `descriptionVerb`
+      : Verb used in description. Default: `"enable"`
+
+      `example`
+      : Example value of the option. Default: `!default`
+
+      `extraDescription`
+      : Additional text appended to description. Default: `""`
+
+    # Examples
+    :::{.example}
+    ## `lib.options.mkBoolOption` usage example
+
+    ```nix
+    mkBoolOption {
+      name = "foo";
+      default = true;
+    }
+    => { ...; default = true; example = false; description = "Whether to enable foo."; type = bool; }
+    ```
+
+    :::
+  */
+  mkBoolOption =
+    {
+      name,
+      default ? false,
+      example ? !default,
+      descriptionVerb ? "enable",
+      extraDescription ? "",
+    }:
+    mkOption {
+      inherit default example;
+      type = lib.types.bool;
+      description =
+        "Whether to ${descriptionVerb} ${name}." + optionalString (extraDescription != "") "\n${extraDescription}";
+    };
+
+  /**
     Creates an option declaration with a default value of `false`, and can be defined to `true`.
+
+    :::{.warning}
+    `lib.options.mkEnableOption` is deprecated; use `lib.options.mkBoolOption` instead.
+    :::
 
     # Inputs
 
@@ -185,13 +242,12 @@ rec {
     :::
   */
   mkEnableOption =
-    name:
-    mkOption {
-      default = false;
-      example = true;
-      description = "Whether to enable ${name}.";
-      type = lib.types.bool;
-    };
+    lib.warn "lib.options.mkEnableOption is deprecated, use lib.options.mkBoolOption instead." (
+      name:
+      mkBoolOption {
+        inherit name;
+      }
+    );
 
   /**
     Creates an Option attribute set for an option that specifies the
