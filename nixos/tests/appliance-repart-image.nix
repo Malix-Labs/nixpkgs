@@ -34,6 +34,7 @@ in
       # Disable boot loaders because we install one "manually".
       # TODO(raitobezarius): revisit this when #244907 lands
       boot.loader.grub.enable = false;
+      boot.loader.systemd-boot.enable = false;
 
       system.image.id = imageId;
       system.image.version = imageVersion;

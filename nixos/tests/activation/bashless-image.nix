@@ -35,6 +35,7 @@ in
       };
 
       boot.loader.grub.enable = false;
+      boot.loader.systemd-boot.enable = false;
 
       virtualisation.fileSystems = lib.mkForce {
         "/" = {

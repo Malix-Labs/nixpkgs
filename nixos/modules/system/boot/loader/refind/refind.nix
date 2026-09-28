@@ -7,6 +7,7 @@
 }:
 let
   inherit (lib)
+    mkDefault
     mkIf
     mkEnableOption
     mkOption
@@ -99,6 +100,9 @@ in
         message = "rEFInd can only be installed on UEFI platforms";
       }
     ];
+
+    boot.loader.grub.enable = mkDefault false;
+    boot.loader.systemd-boot.enable = mkDefault false;
 
     # Common attribute for boot loaders so only one of them can be
     # set at once.

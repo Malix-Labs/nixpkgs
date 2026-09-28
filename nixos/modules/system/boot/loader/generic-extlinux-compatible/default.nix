@@ -122,6 +122,9 @@ in
       system.build.installBootLoader = installBootLoader;
       system.boot.loader.id = "generic-extlinux-compatible";
 
+      boot.loader.grub.enable = mkDefault false;
+      boot.loader.systemd-boot.enable = mkDefault false;
+
       boot.loader.generic-extlinux-compatible.populateCmd = "${populateBuilder} ${builderArgs}";
 
       assertions = [
