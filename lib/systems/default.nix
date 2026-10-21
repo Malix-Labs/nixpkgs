@@ -277,6 +277,8 @@ let
               "mips64" # endianness is *not* included on mips64
             else if final.isDarwin then
               final.darwinArch
+            else if final.isx86_64 then
+              "x86_64"
             else
               final.parsed.cpu.name;
 
@@ -320,7 +322,8 @@ let
         inherit
           (
             {
-              gcc = args.gcc or { };
+              gcc =
+                (if final.parsed.cpu ? arch then { arch = final.parsed.cpu.arch; } else { }) // (args.gcc or { });
             }
             // platforms.select final
           )
@@ -534,6 +537,10 @@ let
                   "armv5tel" = "armv5te";
                   "riscv32" = "riscv32gc";
                   "riscv64" = "riscv64gc";
+                  "x86_64-v1" = "x86_64";
+                  "x86_64-v2" = "x86_64";
+                  "x86_64-v3" = "x86_64";
+                  "x86_64-v4" = "x86_64";
                 }
                 .${cpu.name} or cpu.name;
               vendor_ = final.rust.platform.vendor;
@@ -607,6 +614,10 @@ let
               "riscv64" = "riscv64";
               "s390x" = "s390x";
               "x86_64" = "amd64";
+              "x86_64-v1" = "amd64";
+              "x86_64-v2" = "amd64";
+              "x86_64-v3" = "amd64";
+              "x86_64-v4" = "amd64";
               "wasm32" = "wasm";
             }
             .${final.parsed.cpu.name} or null;
@@ -614,6 +625,10 @@ let
 
           # See https://go.dev/wiki/GoArm
           GOARM = toString (lib.intersectLists [ (final.parsed.cpu.version or "") ] [ "5" "6" "7" ]);
+
+          # See https://go.dev/wiki/MinimumRequirements#amd64
+          GOAMD64 =
+            if final.isx86_64 && final.parsed.cpu ? version then "v${final.parsed.cpu.version}" else null;
         };
 
         node = {

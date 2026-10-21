@@ -24,6 +24,7 @@ let
     all
     any
     attrValues
+    drop
     elem
     elemAt
     hasPrefix
@@ -242,6 +243,34 @@ rec {
         family = "x86";
         arch = "x86-64";
       };
+      x86_64-v1 = {
+        bits = 64;
+        significantByte = littleEndian;
+        family = "x86";
+        arch = "x86-64-v1";
+        version = "1";
+      };
+      x86_64-v2 = {
+        bits = 64;
+        significantByte = littleEndian;
+        family = "x86";
+        arch = "x86-64-v2";
+        version = "2";
+      };
+      x86_64-v3 = {
+        bits = 64;
+        significantByte = littleEndian;
+        family = "x86";
+        arch = "x86-64-v3";
+        version = "3";
+      };
+      x86_64-v4 = {
+        bits = 64;
+        significantByte = littleEndian;
+        family = "x86";
+        arch = "x86-64-v4";
+        version = "4";
+      };
 
       microblaze = {
         bits = 32;
@@ -414,6 +443,12 @@ rec {
       # Apple architecture name, as used by `darwinArch`; required by
       # LLVM ≥ 20.
       arm64 = cpuTypes.aarch64;
+
+      # x86_64 microarchitecture aliases
+      x86_64_v1 = cpuTypes.x86_64-v1;
+      x86_64_v2 = cpuTypes.x86_64-v2;
+      x86_64_v3 = cpuTypes.x86_64-v3;
+      x86_64_v4 = cpuTypes.x86_64-v4;
     };
 
   # GNU build systems assume that older NetBSD architectures are using a.out.
@@ -455,6 +490,14 @@ rec {
 
       # XXX: Not true in some cases. Like in WSL mode.
       (b == i686 && isCompatible a x86_64)
+
+      # x86_64 microarchitecture levels
+      (b == x86_64 && a == x86_64-v1)
+      (b == x86_64-v1 && a == x86_64)
+      (b == x86_64 && isCompatible a x86_64-v2)
+      (b == x86_64-v1 && isCompatible a x86_64-v2)
+      (b == x86_64-v2 && isCompatible a x86_64-v3)
+      (b == x86_64-v3 && isCompatible a x86_64-v4)
 
       # ARMv4
       (b == arm && isCompatible a armv5tel)
@@ -808,7 +851,25 @@ rec {
         "uefi"
       ];
     in
-    l:
+    rawList:
+    let
+      # If the first token is "x86_64" and the second is "v1".."v4",
+      # combine them into a single "x86_64-v*" CPU token before parsing.
+      l =
+        if
+          length rawList >= 2
+          && head rawList == "x86_64"
+          && elem (elemAt rawList 1) [
+            "v1"
+            "v2"
+            "v3"
+            "v4"
+          ]
+        then
+          [ "${head rawList}-${elemAt rawList 1}" ] ++ (drop 2 rawList)
+        else
+          rawList;
+    in
     {
       "1" =
         let
@@ -895,12 +956,18 @@ rec {
           }
         else
           throw "system string '${lib.concatStringsSep "-" l}' with 3 components is ambiguous";
-      "4" = {
-        cpu = head l;
-        vendor = elemAt l 1;
-        kernel = elemAt l 2;
-        abi = elemAt l 3;
-      };
+      "4" =
+        let
+          secondComponent = elemAt l 1;
+          thirdComponent = elemAt l 2;
+          fourthComponent = elemAt l 3;
+        in
+        {
+          cpu = head l;
+          vendor = secondComponent;
+          kernel = thirdComponent;
+          abi = fourthComponent;
+        };
     }
     .${toString (length l)}
     or (throw "system string '${lib.concatStringsSep "-" l}' has invalid number of hyphen-separated components");

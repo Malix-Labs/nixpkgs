@@ -296,6 +296,72 @@ lib.runTests (
         );
       expected = false;
     };
+
+    test_x86_64_microarch_parse = {
+      expr = {
+        v1 = (lib.systems.parse.mkSystemFromString "x86_64-v1-linux").cpu.name;
+        v2 = (lib.systems.parse.mkSystemFromString "x86_64-v2-linux").cpu.name;
+        v3 = (lib.systems.parse.mkSystemFromString "x86_64-v3-linux").cpu.name;
+        v4 = (lib.systems.parse.mkSystemFromString "x86_64-v4-linux").cpu.name;
+        v3_underscore = (lib.systems.parse.mkSystemFromString "x86_64_v3-linux").cpu.name;
+        v3_triplet = (lib.systems.parse.mkSystemFromString "x86_64-v3-unknown-linux-gnu").cpu.name;
+      };
+      expected = {
+        v1 = "x86_64-v1";
+        v2 = "x86_64-v2";
+        v3 = "x86_64-v3";
+        v4 = "x86_64-v4";
+        v3_underscore = "x86_64-v3";
+        v3_triplet = "x86_64-v3";
+      };
+    };
+
+    test_x86_64_microarch_elaborate = {
+      expr =
+        let
+          v3 = lib.systems.elaborate "x86_64-v3-linux";
+        in
+        {
+          inherit (v3) system isx86_64;
+          gcc_arch = v3.gcc.arch;
+          uname_processor = v3.uname.processor;
+          rustcTarget = v3.rust.rustcTarget;
+          goamd64 = v3.go.GOAMD64;
+        };
+      expected = {
+        system = "x86_64-v3-linux";
+        isx86_64 = true;
+        gcc_arch = "x86-64-v3";
+        uname_processor = "x86_64";
+        rustcTarget = "x86_64-unknown-linux-gnu";
+        goamd64 = "v3";
+      };
+    };
+
+    test_x86_64_microarch_canExecute = {
+      expr =
+        let
+          base = lib.systems.elaborate "x86_64-linux";
+          v1 = lib.systems.elaborate "x86_64-v1-linux";
+          v3 = lib.systems.elaborate "x86_64-v3-linux";
+        in
+        {
+          v3_canExecute_v1 = v3.canExecute v1;
+          v1_canExecute_v3 = v1.canExecute v3;
+          base_canExecute_v1 = base.canExecute v1;
+          v1_canExecute_base = v1.canExecute base;
+          v3_canExecute_base = v3.canExecute base;
+          base_canExecute_v3 = base.canExecute v3;
+        };
+      expected = {
+        v3_canExecute_v1 = true;
+        v1_canExecute_v3 = false;
+        base_canExecute_v1 = true;
+        v1_canExecute_base = true;
+        v3_canExecute_base = true;
+        base_canExecute_v3 = false;
+      };
+    };
   }
   // {
     # equals.functionNames must list exactly the function-valued attrs of an
